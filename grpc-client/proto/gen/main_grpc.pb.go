@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             v6.33.1
-// source: proto/main.proto
+// source: main.proto
 
 package mainapipb
 
@@ -117,5 +117,107 @@ var Calculate_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "proto/main.proto",
+	Metadata: "main.proto",
+}
+
+const (
+	Greeting_Greet_FullMethodName = "/calculator.Greeting/Greet"
+)
+
+// GreetingClient is the client API for Greeting service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type GreetingClient interface {
+	Greet(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
+}
+
+type greetingClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewGreetingClient(cc grpc.ClientConnInterface) GreetingClient {
+	return &greetingClient{cc}
+}
+
+func (c *greetingClient) Greet(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HelloResponse)
+	err := c.cc.Invoke(ctx, Greeting_Greet_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GreetingServer is the server API for Greeting service.
+// All implementations must embed UnimplementedGreetingServer
+// for forward compatibility.
+type GreetingServer interface {
+	Greet(context.Context, *HelloRequest) (*HelloResponse, error)
+	mustEmbedUnimplementedGreetingServer()
+}
+
+// UnimplementedGreetingServer must be embedded to have
+// forward compatible implementations.
+//
+// NOTE: this should be embedded by value instead of pointer to avoid a nil
+// pointer dereference when methods are called.
+type UnimplementedGreetingServer struct{}
+
+func (UnimplementedGreetingServer) Greet(context.Context, *HelloRequest) (*HelloResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method Greet not implemented")
+}
+func (UnimplementedGreetingServer) mustEmbedUnimplementedGreetingServer() {}
+func (UnimplementedGreetingServer) testEmbeddedByValue()                  {}
+
+// UnsafeGreetingServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GreetingServer will
+// result in compilation errors.
+type UnsafeGreetingServer interface {
+	mustEmbedUnimplementedGreetingServer()
+}
+
+func RegisterGreetingServer(s grpc.ServiceRegistrar, srv GreetingServer) {
+	// If the following call panics, it indicates UnimplementedGreetingServer was
+	// embedded by pointer and is nil.  This will cause panics if an
+	// unimplemented method is ever invoked, so we test this at initialization
+	// time to prevent it from happening at runtime later due to I/O.
+	if t, ok := srv.(interface{ testEmbeddedByValue() }); ok {
+		t.testEmbeddedByValue()
+	}
+	s.RegisterService(&Greeting_ServiceDesc, srv)
+}
+
+func _Greeting_Greet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HelloRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreetingServer).Greet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Greeting_Greet_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreetingServer).Greet(ctx, req.(*HelloRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Greeting_ServiceDesc is the grpc.ServiceDesc for Greeting service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Greeting_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "calculator.Greeting",
+	HandlerType: (*GreetingServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Greet",
+			Handler:    _Greeting_Greet_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "main.proto",
 }
